@@ -1,29 +1,34 @@
-import { useEffect } from "react"
-import { useDispatch, useSelector } from "react-redux"
-//ALWAYS IMPORT THE ACTION AND TEST IT BEFORE PASSING TO REDUCER
-import { fetchPosts } from "../store/postsfeed/actions"
-import { selectPosts, selectAmount, selectLoading} from "../store/postsfeed/selectors"
+import axios from "axios"
+import { useEffect, useState } from "react"
 
 export default function Homepage(){
 
-  const posts = useSelector(selectPosts)
-  const loading = useSelector(selectLoading)
-  const amount = useSelector(selectAmount)
+  //THIS WILL MOVE TO THE REDUCER INITIAL STATE
+  const [ data, setData ] = useState({
+    loading: true,
+    amount: null,
+    posts: []
+  })
 
-  const dispatch = useDispatch()
+  //THIS WILL MOVE TO ACTIONS PAGE
+  //IT'LL DISPATCH AN ANCTION AT THE END
+  const fetchPosts = async () => {
+    const response = await axios.get(`https://codaisseur-coders-network.herokuapp.com/posts?offset=30`)
+    // console.log("response", response)
+    setData({loading: false, amount: response.data.count, posts: response.data.rows})
+  }
 
+  //THIS WILL DISPATCH FETCH POSTS INSTEAD
   useEffect(() => {
-    //NOTE THAT I DON'T CALL FETCHPOSTS
-    //IF USED FUNCTION INSIDE FUNCTION, YOU HAVE TO CALL
-    //EX: dispatch(fetchPosts())
-    dispatch(fetchPosts)
+    fetchPosts()
   }, [])
 
   return(
     <div>
       <h2>List of posts</h2>
-      <p> We have <b>{amount}</b> posts</p>
-      {loading ? "Loading" : posts.map(post => <p key={post.id}>{post.title}</p>)}
+      <p> We have <b>{data.amount}</b> posts</p>
+      {/* YOU WILL USE THE SELECTOR TO MAP OVER THE DATA */}
+      {data.loading ? "Loading" : data.posts.map(post => <p key={post.id}>{post.title}</p>)}
     </div>
   )
 }
